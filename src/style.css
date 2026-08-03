@@ -496,16 +496,14 @@ h1, h2, h3 {
   .nav__toggle { display: flex; }
   .nav.is-stuck { padding-block: 10px; }
 
-  .hero { min-height: auto; align-items: stretch; }
-  .hero__content { padding: 120px 24px 40px; }
-  .hero__stage {
-    position: relative; inset: auto;
-    height: 52svh; min-height: 340px;
-    order: 2;
-  }
-  .hero { flex-direction: column; }
+  /* Mobilde de kule metinlerle aynı ekranda: sağ üstte arka plan öğesi */
+  .hero { min-height: 100svh; }
+  .hero__content { padding: 104px 24px 56px; }
+  .hero__stage { opacity: .92; }
   .hero__scrim {
-    background: linear-gradient(180deg, rgba(7, 11, 16, .5) 0%, rgba(7, 11, 16, 0) 26%, rgba(7, 11, 16, 0) 74%, rgba(7, 11, 16, .65) 100%);
+    background:
+      radial-gradient(118% 52% at 80% 15%, rgba(7, 11, 16, 0) 0%, rgba(7, 11, 16, .5) 58%, rgba(7, 11, 16, .9) 100%),
+      linear-gradient(180deg, rgba(7, 11, 16, .3) 0%, rgba(7, 11, 16, .74) 44%, rgba(7, 11, 16, .97) 100%);
   }
   .hero__stats { gap: 28px; margin-top: 40px; }
   .hero__stats b { font-size: 34px; }

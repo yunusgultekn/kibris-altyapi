@@ -585,12 +585,26 @@ export function initRig(canvas, { onReady } = {}) {
     camera.aspect = w / h;
 
     const ratio = w / h;
-    // Masaüstü yerleşiminde kule sağ tarafa kaysın, solda metne yer kalsın.
-    // Kaydırma miktarı, kulenin ekranın ~%66'sında durmasına göre hesaplanır.
     const desktop = window.innerWidth > 820;
-    target.x = desktop ? -THREE.MathUtils.clamp(2.9 * ratio, 2.4, 5.8) : 0;
-    camera.fov = desktop ? 36 : 33;
-    root.scale.setScalar(1);
+
+    if (desktop) {
+      // Kule sağ tarafa kaysın, solda metne yer kalsın.
+      // Kaydırma miktarı, kulenin ekranın ~%66'sında durmasına göre hesaplanır.
+      target.x = -THREE.MathUtils.clamp(2.9 * ratio, 2.4, 5.8);
+      target.y = 2.15;
+      camera.fov = 36;
+      root.scale.setScalar(1);
+    } else {
+      // Mobilde metnin arkasında, sağ üst köşeye yerleşen arka plan öğesi.
+      // Hedefi sola/aşağı almak kuleyi ekranda sağ üste taşır.
+      // Ölçek en/boy oranına bağlı: kule her cihazda ekran genişliğinin
+      // ~%38'ini kaplasın, tablette orantısız büyümesin.
+      const s = THREE.MathUtils.clamp(0.83 * ratio, 0.3, 0.6);
+      camera.fov = 40;
+      root.scale.setScalar(s);
+      target.x = -4.3 * ratio;
+      target.y = 1.9 * s - 5.0;
+    }
     camera.updateProjectionMatrix();
   }
 

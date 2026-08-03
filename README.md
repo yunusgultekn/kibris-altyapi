@@ -43,6 +43,11 @@ Hazır `.glb` / `.fbx` model dosyası **kullanılmadı**. Tüm geometri
 
 Fare hareketiyle sahne hafifçe döner, kamera paralaks yapar.
 
+**Yerleşim:** Masaüstünde kule sağ yarıda tam boy durur, metin solda kalır.
+Mobil ve tablette ise küçültülüp sağ üst köşeye alınır ve metinlerin arkasında
+arka plan öğesi olarak görünür; ölçek/konum ekran en-boy oranına göre
+`src/rig.js` içindeki `resize()` fonksiyonunda hesaplanır.
+
 ### Performans ve erişilebilirlik
 
 - Three.js ayrı bir parça olarak (`dynamic import`) yüklenir; sayfa 3B beklemeden boyanır.
