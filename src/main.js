@@ -41,20 +41,35 @@ navToggle.addEventListener('click', () => {
   document.body.style.overflow = open ? 'hidden' : '';
 });
 
-navLinks.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeNav));
+/* Tek delege dinleyici: alt menü başlıkları ile normal linkler aynı
+   elemanda iki ayrı dinleyici taşırsa, mobilde "Hizmetlerimiz"e dokunmak
+   hem alt menüyü açıp hem tüm menüyü kapatıyordu. */
+navLinks.addEventListener('click', (e) => {
+  const link = e.target.closest('a');
+  if (!link || !navLinks.contains(link)) return;
 
-// Mobilde açılır menüler dokunmayla açılsın
-navLinks.querySelectorAll('.nav__drop > a').forEach((a) => {
-  a.addEventListener('click', (e) => {
-    if (window.innerWidth > 1080) return;
-    const drop = a.parentElement;
-    if (!drop.classList.contains('is-open')) {
-      e.preventDefault();
-      e.stopPropagation();
-      navLinks.querySelectorAll('.nav__drop').forEach((d) => d.classList.remove('is-open'));
-      drop.classList.add('is-open');
-    }
-  });
+  const drop = link.parentElement.classList.contains('nav__drop')
+    ? link.parentElement
+    : null;
+
+  // Mobilde alt menü başlığının ilk dokunuşu menüyü açar, ikincisi sayfaya gider
+  if (drop && window.innerWidth <= 1080 && !drop.classList.contains('is-open')) {
+    e.preventDefault();
+    navLinks.querySelectorAll('.nav__drop').forEach((d) => d.classList.remove('is-open'));
+    drop.classList.add('is-open');
+    return;
+  }
+
+  closeNav();
+});
+
+// Menü açıkken masaüstü genişliğine geçilirse gövde kilidi açık kalmasın
+const mqDesktop = window.matchMedia('(min-width: 1081px)');
+mqDesktop.addEventListener('change', (e) => {
+  if (e.matches) {
+    closeNav();
+    navLinks.querySelectorAll('.nav__drop').forEach((d) => d.classList.remove('is-open'));
+  }
 });
 
 const onScroll = () => nav.classList.toggle('is-stuck', window.scrollY > 40);

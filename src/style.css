@@ -123,6 +123,11 @@ h1, h2, h3 {
   border-bottom-color: var(--line);
 }
 
+/* Mobilde açılan menü tam ekran kaplıyor; konumlanmış olduğu için
+   konumsuz kardeşlerinin üstüne biner. Logo ve hamburger butonu erişilebilir
+   kalsın diye ikisini de üst katmana alıyoruz. */
+.brand, .nav__toggle { position: relative; z-index: 2; }
+
 .brand { display: inline-flex; align-items: center; gap: 12px; flex: none; }
 .brand__logo {
   width: 34px; height: 34px; flex: none;
@@ -167,7 +172,8 @@ h1, h2, h3 {
   transform: rotate(45deg) translate(-1px, -1px);
   transition: transform .3s var(--ease);
 }
-.nav__drop:hover > a i { transform: rotate(-135deg) translate(-2px, -2px); }
+.nav__drop:hover > a i,
+.nav__drop.is-open > a i { transform: rotate(-135deg) translate(-2px, -2px); }
 
 /* Link ile menü arasındaki boşluğu hover alanına dahil et, yoksa fare
    aşağı inerken menü kapanıyor. Genişlik link aralığının (22px) yarısını
@@ -608,15 +614,28 @@ h1, h2, h3 {
   }
   .nav__drop { display: block; }
   .nav__drop > a { display: flex; justify-content: space-between; }
+  /* Masaüstündeki hover köprüsü mobilde alt menünün altına düşüp
+     bir sonraki menü satırının üstünü kapatıyor — dokunmayı engelliyor */
+  .nav__drop::after { display: none; }
   .nav__menu {
     position: static; transform: none; min-width: 0; column-count: 1;
     max-height: 0; padding: 0; overflow: hidden; border: 0;
     background: none; box-shadow: none; opacity: 1; visibility: visible;
     transition: max-height .4s var(--ease), padding .4s var(--ease);
   }
-  .nav__drop:hover .nav__menu { max-height: 0; }
-  .nav__drop.is-open .nav__menu { max-height: 60vh; overflow-y: auto; padding: 8px 0 14px; }
+  /* Masaüstü kuralı `.nav__drop.is-open .nav__menu` üç sınıflı olduğu için
+     yukarıdaki tek sınıflı `.nav__menu { transform: none }` kuralını eziyor
+     ve açılan liste kendi genişliğinin yarısı kadar sola kayıyordu
+     (ekran dışına taşıyordu). Açık durumda da sıfırlıyoruz. */
+  .nav__drop:hover .nav__menu { max-height: 0; transform: none; left: auto; }
+  /* Menü içinde ikinci bir kaydırma alanı dokunmayı zorlaştırıyor;
+     liste tam açılsın, kaydırmayı üstteki tam ekran menü yapsın */
+  .nav__drop.is-open .nav__menu {
+    max-height: 1400px; padding: 8px 0 14px;
+    transform: none; left: auto;
+  }
   .nav__menu a { padding: 8px 14px; }
+  .nav__links .btn { margin-top: 18px; justify-content: center; }
   .nav__toggle { display: flex; }
   .nav { padding-block: 14px; }
   .nav.is-stuck { padding-block: 10px; }
