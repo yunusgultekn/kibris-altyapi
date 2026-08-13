@@ -1,7 +1,12 @@
-# Kıbrıs Altyapı — Tanıtım Sitesi
+# Kıbrıs Altyapı — Kurumsal Site
 
-Sondaj ve altyapı firması için tek sayfalık (one-page) tanıtım sitesi.
-Ana sayfada marka kimliğinin yanında **Three.js ile kod içinde üretilen 3B sondaj kulesi animasyonu** yer alır.
+Sondaj ve altyapı firması için **48 sayfalık** statik site.
+İçerik (metinler, görseller, hizmet ve bölge sayfaları) mevcut
+`kibrisaltyapi.com.tr` sitesinden alınmış; ana sayfada marka kimliğinin yanında
+**Three.js ile kod içinde üretilen 3B sondaj kulesi animasyonu** yer alır.
+
+**Sayfa dökümü:** ana sayfa · hakkımızda · 17 hizmet · 18 bölge · 6 blog yazısı ·
+hizmet/bölge/blog listeleri · galeri · iletişim.
 
 ## Çalıştırma
 
@@ -19,8 +24,33 @@ Yayına hazır dosyalar için:
 npm run build
 ```
 
-Çıktı `dist/` klasörüne düşer; Netlify, Vercel, cPanel gibi herhangi bir statik
-sunucuya olduğu gibi yüklenebilir. Yerelde önizlemek için `npm run preview`.
+Çıktı `dist/` klasörüne düşer (48 HTML + görseller, ~37 MB); Netlify, Vercel,
+cPanel gibi herhangi bir statik sunucuya olduğu gibi yüklenebilir.
+Yerelde önizlemek için `npm run preview`.
+
+## Sayfalar nasıl üretiliyor?
+
+HTML dosyaları **elle yazılmaz, üretilir**. Zincir şöyle:
+
+```
+content/raw/*.json     WordPress REST API'den çekilmiş ham veri
+        ↓  scripts/extract.py
+content/site.json      temizlenmiş içerik (tek kaynak)
+        ↓  scripts/build-pages.mjs + scripts/templates.mjs
+/hizmetlerimiz/index.html, /kibris-sondaj/index.html, ...
+```
+
+`npm run dev` ve `npm run build` bu adımı otomatik çalıştırır; `content/site.json`
+ya da şablonlar değişince dev sunucusu sayfaları yeniden üretip tarayıcıyı
+yeniler.
+
+**Metin değiştirmek için** üretilen HTML'i değil `content/site.json`'ı düzenleyin —
+aksi halde ilk `npm run dev` çalıştığında değişikliğiniz silinir. Üretilen
+klasörler bu yüzden `.gitignore`'da.
+
+Görseller `scripts/optimize-images.py` ile WebP'ye çevrilip iki boyutta
+saklanır: `public/img/full` (sayfa içi) ve `public/img/card` (liste kartları).
+Orijinaller `public/img/_src` altında ve git'e girmez.
 
 ## 3B animasyon nasıl yapıldı?
 
@@ -59,32 +89,35 @@ arka plan öğesi olarak görünür; ölçek/konum ekran en-boy oranına göre
 ## Dosya düzeni
 
 ```
-index.html        Sayfa iskeleti ve tüm metinler
-src/main.js       Menü, kaydırma animasyonları, sayaçlar, form
-src/rig.js        Three.js sahnesi (3B sondaj kulesi)
-src/style.css     Tüm stiller
+content/raw/       WordPress API ham çıktısı (yeniden çekmeye gerek kalmasın diye)
+content/site.json  Tüm site içeriği — metin değişiklikleri buradan
+scripts/extract.py       ham veriyi temizleyip site.json üretir
+scripts/build-pages.mjs  site.json'dan 48 HTML sayfası üretir
+scripts/templates.mjs    ortak HTML şablonları (layout, kart, liste, makale)
+scripts/optimize-images.py  görselleri WebP'ye çevirir
+src/main.js        menü, kaydırma animasyonları, sayaçlar, form
+src/rig.js         Three.js sahnesi (3B sondaj kulesi)
+src/style.css      tüm stiller
+public/img/        optimize edilmiş görseller
 ```
 
-## Yayına almadan önce değiştirilmesi gerekenler
+## Yayına almadan önce
 
-Aşağıdaki bilgiler **örnek/placeholder** olarak girildi, kendi bilgilerinizle
-değiştirin:
+- **İletişim bilgileri** `content/site.json` içindeki `brand` bölümünde
+  (telefonlar, adres, e-posta). Kaynak siteden alındı, doğruluğunu teyit edin.
+- **Alan adı** `scripts/templates.mjs` içindeki `SITE_URL` sabiti — canonical
+  etiketleri, `og:url` ve `sitemap.xml` bundan üretiliyor. Şu an
+  `https://kibrisaltyapi.com.tr` yazıyor; kendi alan adınızla değiştirin.
+- **Form** sunucu tarafı yok; doldurulan bilgiler hazır bir e-posta taslağına
+  çevrilip kullanıcının mail uygulamasını açar (`mailto:`). Doğrudan size
+  ulaşması için Formspree / Netlify Forms gibi bir servise bağlanmalı —
+  [src/main.js](src/main.js) içindeki `teklifForm` submit bölümü.
 
-| Ne | Nerede |
-| --- | --- |
-| Telefon `+90 533 000 00 00` | [index.html](index.html) — İletişim bölümü |
-| E-posta `info@kibrisaltyapi.com` | [index.html](index.html) ve [src/main.js](src/main.js) (form) |
-| Adres `Sanayi Bölgesi, Lefkoşa` | [index.html](index.html) |
-| İstatistikler (22+ yıl, 850+ kuyu, 300 m) | [index.html](index.html) — `data-count` alanları |
-| Hizmet açıklamaları, teknik tablo değerleri | [index.html](index.html) |
+### İçerik telifi
 
-### Form hakkında
-
-Sitede sunucu tarafı yok. Teklif formu, doldurulan bilgileri hazır bir e-posta
-taslağına dönüştürüp kullanıcının e-posta uygulamasını açar (`mailto:`).
-Formun doğrudan size ulaşmasını istiyorsanız Formspree / Netlify Forms gibi bir
-servise ya da kendi backend'inize bağlamanız gerekir —
-[src/main.js](src/main.js) içindeki `teklifForm` submit bölümü değiştirilecek yerdir.
+Metinler ve görseller `kibrisaltyapi.com.tr` sitesinden alındı. Bu sitenin
+sahibi siz değilseniz veya kullanım izniniz yoksa, yayına almadan önce içeriği
+kendi metin ve fotoğraflarınızla değiştirin.
 
 ### Marka renkleri
 

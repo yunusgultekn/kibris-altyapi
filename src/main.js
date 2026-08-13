@@ -1,39 +1,36 @@
 import './style.css';
 
-/* ---------- 3B sahne ---------- */
+/* ---------- 3B sahne (yalnızca ana sayfada) ---------- */
 
 const canvas = document.getElementById('rig');
-const loader = document.getElementById('loader');
 
-let loaderDone = false;
-const hideLoader = () => {
-  if (loaderDone) return;
-  loaderDone = true;
-  loader.classList.add('is-done');
-  document.body.classList.add('is-ready');
-};
-
-// Three.js ayrı parça olarak yüklenir; sayfa beklemeden boyanır.
-(async () => {
-  try {
-    const { initRig } = await import('./rig.js');
-    const rig = initRig(canvas, { onReady: hideLoader });
-    if (!rig) throw new Error('WebGL bağlamı oluşturulamadı');
-    // sahne beklenenden uzun sürerse yine de perdeyi kaldır
-    setTimeout(hideLoader, 4000);
-  } catch (err) {
-    console.warn('3B sahne devre dışı, CSS yedeğine geçiliyor:', err);
-    canvas.hidden = true;
-    document.getElementById('noWebgl').hidden = false;
-    hideLoader();
-  }
-})();
+if (canvas) {
+  // Three.js ayrı parça olarak yüklenir; sayfa beklemeden boyanır.
+  (async () => {
+    try {
+      const { initRig } = await import('./rig.js');
+      if (!initRig(canvas)) throw new Error('WebGL bağlamı oluşturulamadı');
+    } catch (err) {
+      console.warn('3B sahne devre dışı, CSS yedeğine geçiliyor:', err);
+      canvas.hidden = true;
+      const fallback = document.getElementById('noWebgl');
+      if (fallback) fallback.hidden = false;
+    }
+  })();
+}
 
 /* ---------- menü ---------- */
 
 const nav = document.getElementById('nav');
 const navLinks = document.getElementById('navLinks');
 const navToggle = document.getElementById('navToggle');
+
+const closeNav = () => {
+  navLinks.classList.remove('is-open');
+  navToggle.classList.remove('is-open');
+  navToggle.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+};
 
 navToggle.addEventListener('click', () => {
   const open = navLinks.classList.toggle('is-open');
@@ -43,14 +40,21 @@ navToggle.addEventListener('click', () => {
   document.body.style.overflow = open ? 'hidden' : '';
 });
 
-navLinks.querySelectorAll('a').forEach((a) =>
-  a.addEventListener('click', () => {
-    navLinks.classList.remove('is-open');
-    navToggle.classList.remove('is-open');
-    navToggle.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
-  })
-);
+navLinks.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeNav));
+
+// Mobilde açılır menüler dokunmayla açılsın
+navLinks.querySelectorAll('.nav__drop > a').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    if (window.innerWidth > 1080) return;
+    const drop = a.parentElement;
+    if (!drop.classList.contains('is-open')) {
+      e.preventDefault();
+      e.stopPropagation();
+      navLinks.querySelectorAll('.nav__drop').forEach((d) => d.classList.remove('is-open'));
+      drop.classList.add('is-open');
+    }
+  });
+});
 
 const onScroll = () => nav.classList.toggle('is-stuck', window.scrollY > 40);
 window.addEventListener('scroll', onScroll, { passive: true });
@@ -58,10 +62,11 @@ onScroll();
 
 /* ---------- kaydırınca beliren bloklar ---------- */
 
-const reveals = document.querySelectorAll('.reveal');
-reveals.forEach((el, i) => {
-  const siblings = [...el.parentElement.children].filter((c) => c.classList.contains('reveal'));
-  el.style.setProperty('--d', `${siblings.indexOf(el) * 90}ms`);
+const reveals = document.querySelectorAll('.reveal, .tile, .section__head, .side-card');
+reveals.forEach((el) => {
+  const siblings = [...el.parentElement.children].filter((c) => c.className === el.className);
+  el.style.setProperty('--d', `${Math.min(siblings.indexOf(el), 5) * 80}ms`);
+  el.classList.add('reveal');
 });
 
 const revealIO = new IntersectionObserver(
@@ -74,84 +79,78 @@ const revealIO = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.15, rootMargin: '0px 0px -60px' }
+  { threshold: 0.1, rootMargin: '0px 0px -50px' }
 );
 reveals.forEach((el) => revealIO.observe(el));
 
 /* ---------- sayaçlar ---------- */
 
-const counters = document.querySelectorAll('[data-count]');
-const runCounter = (el) => {
-  const end = parseFloat(el.dataset.count);
-  const suffix = el.dataset.suffix || '';
-  const dur = 1600;
-  const t0 = performance.now();
-
-  const step = (now) => {
-    const p = Math.min(1, (now - t0) / dur);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(end * eased).toLocaleString('tr-TR') + suffix;
-    if (p < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-};
-
 const countIO = new IntersectionObserver(
   (entries) => {
     entries.forEach((e) => {
-      if (e.isIntersecting) {
-        runCounter(e.target);
-        countIO.unobserve(e.target);
-      }
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const end = parseFloat(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      const t0 = performance.now();
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / 1500);
+        el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))).toLocaleString('tr-TR') + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      countIO.unobserve(el);
     });
   },
   { threshold: 0.6 }
 );
-counters.forEach((el) => countIO.observe(el));
+document.querySelectorAll('[data-count]').forEach((el) => countIO.observe(el));
 
 /* ---------- teklif formu ---------- */
 
 const form = document.getElementById('teklifForm');
-const hint = document.getElementById('formHint');
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = new FormData(form);
-  const ad = (data.get('ad') || '').toString().trim();
-  const tel = (data.get('tel') || '').toString().trim();
+if (form) {
+  const hint = document.getElementById('formHint');
 
-  const adEl = form.elements.ad;
-  const telEl = form.elements.tel;
-  adEl.classList.toggle('is-bad', !ad);
-  telEl.classList.toggle('is-bad', tel.replace(/\D/g, '').length < 10);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const ad = (data.get('ad') || '').toString().trim();
+    const tel = (data.get('tel') || '').toString().trim();
+    const digits = tel.replace(/\D/g, '');
 
-  if (!ad || tel.replace(/\D/g, '').length < 10) {
-    hint.textContent = 'Lütfen ad ve geçerli bir telefon numarası girin.';
-    hint.classList.remove('is-ok');
-    return;
-  }
+    form.elements.ad.classList.toggle('is-bad', !ad);
+    form.elements.tel.classList.toggle('is-bad', digits.length < 10);
 
-  // Backend yok: talep hazır bir e-posta taslağına dönüştürülür.
-  const konu = `Teklif talebi — ${data.get('hizmet')}`;
-  const govde = [
-    `Ad Soyad: ${ad}`,
-    `Telefon: ${tel}`,
-    `Hizmet: ${data.get('hizmet')}`,
-    '',
-    `Notlar: ${(data.get('mesaj') || '').toString().trim() || '-'}`,
-  ].join('\n');
+    if (!ad || digits.length < 10) {
+      hint.textContent = 'Lütfen ad ve geçerli bir telefon numarası girin.';
+      hint.classList.remove('is-ok');
+      return;
+    }
 
-  window.location.href =
-    `mailto:info@kibrisaltyapi.com?subject=${encodeURIComponent(konu)}&body=${encodeURIComponent(govde)}`;
+    // Backend yok: talep WhatsApp mesajına dönüştürülür.
+    const metin = [
+      'Merhaba, siteden teklif talebi:',
+      `Ad Soyad: ${ad}`,
+      `Telefon: ${tel}`,
+      `Hizmet: ${data.get('hizmet')}`,
+      `Bölge: ${data.get('bolge')}`,
+      `Notlar: ${(data.get('mesaj') || '').toString().trim() || '-'}`,
+    ].join('\n');
 
-  hint.textContent = 'Teşekkürler! E-posta uygulamanız talebinizle birlikte açılıyor.';
-  hint.classList.add('is-ok');
-});
+    window.open(`https://wa.me/905338439333?text=${encodeURIComponent(metin)}`, '_blank', 'noopener');
 
-form.querySelectorAll('input').forEach((el) =>
-  el.addEventListener('input', () => el.classList.remove('is-bad'))
-);
+    hint.textContent = 'Teşekkürler! Talebiniz WhatsApp üzerinden iletilmek üzere açıldı.';
+    hint.classList.add('is-ok');
+  });
+
+  form.querySelectorAll('input').forEach((el) =>
+    el.addEventListener('input', () => el.classList.remove('is-bad'))
+  );
+}
 
 /* ---------- yıl ---------- */
 
-document.getElementById('year').textContent = new Date().getFullYear();
+const year = document.getElementById('year');
+if (year) year.textContent = new Date().getFullYear();
