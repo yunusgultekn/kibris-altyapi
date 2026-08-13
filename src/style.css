@@ -169,10 +169,18 @@ h1, h2, h3 {
 }
 .nav__drop:hover > a i { transform: rotate(-135deg) translate(-2px, -2px); }
 
+/* Link ile menü arasındaki boşluğu hover alanına dahil et, yoksa fare
+   aşağı inerken menü kapanıyor. Genişlik link aralığının (22px) yarısını
+   aşmamalı — aşarsa komşu açılır menüyle çakışıp ikisi birden açılıyor. */
+.nav__drop::after {
+  content: ''; position: absolute; left: -9px; right: -9px;
+  top: 100%; height: 18px;
+}
+
 .nav__menu {
   position: absolute; top: calc(100% + 14px); left: 50%;
   transform: translate(-50%, 8px);
-  min-width: 320px; padding: 10px;
+  min-width: 320px; max-width: calc(100vw - 40px); padding: 10px;
   background: rgba(11, 17, 25, .97);
   backdrop-filter: blur(16px);
   border: 1px solid var(--line); border-radius: var(--r);
@@ -181,7 +189,8 @@ h1, h2, h3 {
   transition: opacity .25s var(--ease), transform .25s var(--ease), visibility .25s;
   max-height: min(70vh, 560px); overflow-y: auto;
 }
-.nav__menu--cols { min-width: 520px; column-count: 2; column-gap: 6px; }
+/* Uzun listeler kaymasın diye iki sütun */
+.nav__menu--cols { min-width: 560px; column-count: 2; column-gap: 6px; }
 .nav__drop:hover .nav__menu, .nav__drop.is-open .nav__menu {
   opacity: 1; visibility: visible; pointer-events: auto;
   transform: translate(-50%, 0);

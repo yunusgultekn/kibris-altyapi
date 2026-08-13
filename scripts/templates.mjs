@@ -33,7 +33,7 @@ function nav(site, current) {
 
     <div class="nav__drop">
       <a href="/hizmetlerimiz/"${on('/hizmetlerimiz/')}>Hizmetlerimiz <i></i></a>
-      <ul class="nav__menu">${menu(site.services, 17)}
+      <ul class="nav__menu nav__menu--cols">${menu(site.services, 17)}
         <li class="nav__menu-all"><a href="/hizmetlerimiz/">Tümünü gör →</a></li>
       </ul>
     </div>
@@ -165,12 +165,15 @@ export function layout({ site, title, description, url, image, body, current, js
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/src/style.css" />
 ${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>` : ''}
 </head>
 <body class="${bodyClass}">
 ${nav(site, current)}
+<main id="top">
 ${body}
 ${ctaBand(site)}
+</main>
 ${footer(site)}
 <script type="module" src="/src/main.js"></script>
 </body>

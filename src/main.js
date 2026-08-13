@@ -1,4 +1,5 @@
-import './style.css';
+/* style.css <head> içinden yükleniyor (templates.mjs) — buradan import
+   edilirse stiller JS'i bekler ve her sayfa geçişinde biçimsiz HTML görünür. */
 
 /* ---------- 3B sahne (yalnızca ana sayfada) ---------- */
 

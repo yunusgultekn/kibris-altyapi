@@ -24,7 +24,6 @@ function homePage(site) {
   const stat = (n, s, l) => `<li><b data-count="${n}" data-suffix="${s}">0</b><span>${l}</span></li>`;
 
   const body = `
-<main id="top">
   <section class="hero">
     <div class="hero__stage">
       <canvas id="rig"></canvas>
@@ -121,8 +120,7 @@ function homePage(site) {
       </header>
       ${grid(site.blog, 'blog')}
     </div>
-  </section>
-</main>`;
+  </section>`;
 
   return layout({
     site,
